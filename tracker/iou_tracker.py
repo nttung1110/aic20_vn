@@ -4,9 +4,13 @@ import os
 import cv2
 import numpy as np
 from util import *
-PATH_RESULT = './dla_backbone/info_tracking'
+PATH_RESULT = '../../baseline_results/info_tracking'
 #PATH_VID = './data/AIC20_track1/Dataset_A'
-PATH_SVID = './dla_backbone/vis_tracking_results'
+PATH_SVID = '../../baseline_results/vis_tracking_results'
+
+class_text = ['None', 'class_1', 'class_2', 'class_3', 'class_4']
+
+
 def track_iou_edited(vid_name, detections, sigma_l, sigma_h, sigma_iou, t_min, path_video):
     """
     Simple IOU based tracker.
@@ -29,7 +33,7 @@ def track_iou_edited(vid_name, detections, sigma_l, sigma_h, sigma_iou, t_min, p
     if not os.path.isdir(PATH_SVID):
         os.mkdir(PATH_SVID)
 
-    visualize = False
+    visualize = True
     video_path = os.path.join(path_video, vid_name+".mp4")
     idx = 0
     print(video_path)
@@ -79,7 +83,6 @@ def track_iou_edited(vid_name, detections, sigma_l, sigma_h, sigma_iou, t_min, p
             tracks_active = tracks_active + new_tracks
 
             info_fr = []
-            class_text = ['None', 'car', 'truck']
 
             for track_id, track in enumerate(tracks_active):
                 if track == "Done":
@@ -93,17 +96,19 @@ def track_iou_edited(vid_name, detections, sigma_l, sigma_h, sigma_iou, t_min, p
                 info_tracking.append([class_id, idx, score, obj_id, box[0], box[1], box[2], box[3]])
                 if visualize == True:
                     cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 3 )
-                    cv2.putText(frame, class_text[class_id]+str(obj_id).zfill(5), (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2,cv2.LINE_AA) 
+                    cv2.putText(frame, class_text[class_id]+"_id"+str(obj_id).zfill(5), (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2,cv2.LINE_AA) 
            
             if visualize == True:
                 output.write(frame)
 
         idx += 1
+        if(idx == 900):
+            break
     input.release()
     if visualize == True:
         output.release()
     
-    np.save(PATH_RESULT + '/info_' + vid_name+".mp4", info_tracking)
+    np.save(PATH_RESULT + '/info_' + vid_name, info_tracking)
     duration = time.time() - duration
     print("Finish writing %s takes %s"%(vid_name, str(duration)))
 
